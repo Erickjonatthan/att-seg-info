@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        button {
+            margin: 5px;
+        }
+
+        .admin-section {
+            display: none;
+        }
+    </style>
+    <script>
+        function toggleAdminSection(role) {
+            if (role === 'admin') {
+                document.querySelector('.admin-section').style.display = 'block';
+            }
+        }
+    </script>
+</head>
+
+<body onload="toggleAdminSection('{{ role }}')">
+    <h1>Bem-vindo, {{ username }}!</h1>
+    <p>Your role is: {{ role }}</p>
+
+    <div class="admin-section">
+        <h2>Promover Usuário</h2>
+        <form method="POST" action="/promote">
+            <div class="form-group">
+                <label for="username">Nome do Usuário:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <button type="submit">Promover a Admin</button>
+        </form>
+    </div>
+
+    <a href="/">Logout</a>
+</body>
+
+</html>

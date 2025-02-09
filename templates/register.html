@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+    <title>Registro</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -31,8 +31,12 @@
 </head>
 
 <body>
-    <h1>Bem-vindo ao Sistema da Atividade de Segurança de Informação</h1>
-    <form method="POST" action="/login">
+    <h1>Registro de Novo Usuário</h1>
+    <form method="POST" action="/register">
+        <div class="form-group">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" name="nome" required>
+        </div>
         <div class="form-group">
             <label for="username">Usuário:</label>
             <input type="text" id="username" name="username" required>
@@ -41,9 +45,11 @@
             <label for="password">Senha:</label>
             <input type="password" id="password" name="password" required>
         </div>
-        <button type="submit">Logar</button>
-        <button type="button" onclick="window.location.href='/register'">Registrar</button>
-        <button type="button" onclick="window.location.href='/guest'">Entrar como Convidado</button>
+        <div class="form-group">
+            <label for="bloco_texto">Bloco de Texto:</label>
+            <textarea id="bloco_texto" name="bloco_texto" rows="4" required></textarea>
+        </div>
+        <button type="submit">Registrar</button>
     </form>
 </body>
 
