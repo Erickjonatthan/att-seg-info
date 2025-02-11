@@ -5,8 +5,6 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 import base64
 from Crypto.Cipher import AES
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -35,13 +33,12 @@ roles = ['admin', 'user', 'guest']
 @app.route('/')
 def home():
     return render_template('index.html')
-
-# Rota para página de registro
+#Rota para a página de registro
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         data = request.form
-        hashed_pw = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        encrypted_pw = encrypt_aes(data['password'])  # Usando AES para criptografar a senha
         rolle = 'user'
         if data['username'] == 'gladistony':
             rolle = 'admin'
@@ -50,7 +47,7 @@ def register():
             data_criacao=datetime.utcnow(),
             bloco_texto=data['bloco_texto'],
             username=data['username'],
-            password=hashed_pw,
+            password=encrypted_pw,  # Armazenando a senha criptografada
             role=rolle
         )
         db.session.add(new_user)
@@ -79,13 +76,26 @@ def promote():
 def login():
     data = request.form
     user = User.query.filter_by(username=data['username']).first()
-    if user and bcrypt.check_password_hash(user.password, data['password']):
+    if user and decrypt_aes(user.password) == data['password']:  # Usando AES para descriptografar e comparar a senha
         additional_claims = {'role': user.role}
         access_token = create_access_token(identity=user.username, additional_claims=additional_claims)
         response = redirect(url_for('dashboard'))
         response.set_cookie('access_token_cookie', access_token)
         return response
     return jsonify({'message': 'Invalid credentials'}), 401
+
+@app.route('/login-api', methods=['POST'])
+def loginApi():
+    data = request.form
+    user = User.query.filter_by(username=data['username']).first()
+    if user and decrypt_aes(user.password) == data['password']:  # Usando AES para descriptografar e comparar a senha
+        additional_claims = {'role': user.role}
+        access_token = create_access_token(identity=user.username, additional_claims=additional_claims)
+        response = jsonify({'access_token': access_token})
+        response.set_cookie('access_token_cookie', access_token)
+        return response
+    return jsonify({'message': 'Invalid credentials'}), 401
+
 
 # Rota de Login como Convidado
 @app.route('/guest', methods=['GET'])
@@ -141,21 +151,6 @@ def decrypt_aes(enc_data):
     nonce, tag, ciphertext = enc_data[:16], enc_data[16:32], enc_data[32:]
     cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
     return cipher.decrypt_and_verify(ciphertext, tag).decode()
-
-# Criptografia RSA
-key_pair = RSA.generate(2048)
-public_key = key_pair.publickey().export_key()
-private_key = key_pair.export_key()
-
-def encrypt_rsa(data):
-    recipient_key = RSA.import_key(public_key)
-    cipher_rsa = PKCS1_OAEP.new(recipient_key)
-    return base64.b64encode(cipher_rsa.encrypt(data.encode())).decode()
-
-def decrypt_rsa(enc_data):
-    private_rsa_key = RSA.import_key(private_key)
-    cipher_rsa = PKCS1_OAEP.new(private_rsa_key)
-    return cipher_rsa.decrypt(base64.b64decode(enc_data)).decode()
 
 if __name__ == '__main__':
     with app.app_context():
